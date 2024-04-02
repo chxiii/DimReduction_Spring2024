@@ -1,0 +1,73 @@
+---
+title: "miniproject3_Chenxi"
+output:
+  pdf_document: default
+  html_document: default
+date: "2024-04-01"
+---
+
+```{r}
+library(tidyverse)
+library (psych)
+library (GPArotation)
+library(sem)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r bfi}
+data(bfi)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r EFA}
+# Calculate the correlation matrix first
+EFA.cor <- cor(bfi, use = "pairwise.complete.obs")
+# Then use that correlation matrix to create the scree plot
+scree(EFA.cor, factors = FALSE)
+
+#We call also use the Very Simple Structure (VSS) to determine the actual 
+#numbers of the factors 
+
+vss(bfi, rotate = "none")
+
+# Run the EFA with six factors (as indicated by your scree plot)
+EFA.mod <- fa(bfi, nfactors = 6)
+
+# View results from the model object
+EFA.mod
+fa.diagram(EFA.mod)
+```
+And then we compare with 5 factors and 7 factors.
+```{r}
+# Comparing EFA with six factors and theorized CFA with five factors
+
+# Run each theorized EFA on your dataset
+EFA.mod.5 <- fa(bfi, nfactors = 5)
+summary(EFA.mod.5)
+
+EFA.mod.7 <- fa(bfi, nfactors = 7)
+summary(EFA.mod.7)
+
+# Compare the BIC values
+EFA.mod.5$BIC
+EFA.mod.7$BIC
+
+```
+We know the 5 factors model:
+
+[1] The Chi Square is lower than threshhold 0.05, which means there is a significant differences between model and observed data.
+[2] RMSEA index is 0.057, which means a bad fit efficency.
+[3] Tucker Lewis Index is 0.834, which means we have a good validity in this model.
+[4] We can check the matrix between different factors and find the highest relationship represents in MR1 and MR2.
+
+And through the comparsion of 5 factors model and 7 factors model, we can conclude that:
+
+[1] In most case like RMSEA and Tucker Lewis, the 7 factors model has a better fit compared with 5 factors model.
