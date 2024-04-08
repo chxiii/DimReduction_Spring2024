@@ -1,0 +1,76 @@
+---
+title: "Week 2 Mini-project"
+author: "POP77054"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(FactoMineR) 
+# add necessary libraries in this chunk
+```
+
+## Introduction
+
+Here you should discuss what you would like to investigate, and which method is appropriate for doing so. You only need a sentence or two.
+
+## Data
+
+Here you will load in the data and select your variables of interest. Will you also subset the data to specific countries, classes, or perhaps occupations that you are interested in? 
+
+You might think about including in this section some summary statistics of the variables you have chosen (contingency tables, etc.) Try to format these nicely, perhaps using `kable` from the `knitr` package.
+
+```{r load data}
+dat <- readRDS("ISSP5")
+# summary(dat) # check the data. because data list is too long, so I hide it.
+# data tidy
+dat <- dat[complete.cases(dat), ]
+```
+
+## Perform the analysis
+
+In this section, run whichever DR algorithm you have chosen
+
+```{r kable}
+# create a contingency table
+tab <- xtabs(~v68 + v69, data = dat)
+tab
+```
+
+
+
+## Retaining axes
+
+Here, you should analyse the results of your analysis in terms of how many dimensions to retain. If there is a borderline case, perhaps maintain this for further investigation in the next section.
+
+```{r invest}
+ca <- CA(tab)
+summary(ca, nbelements = Inf) 
+```
+
+
+
+
+## Interpret dimensions
+
+In this section you should interpret the dimensions you have retained. Which variables contribute most? What oppositions can you find? Are you able to present an informative visualisation, such as a biplot?
+
+```{r interpret dimensions}
+sum(ca$eig[,1]) # got the egen value from ca
+```
+
+## Conclusion
+```{r CA axes}
+knitr::kable(round(ca$eig,2), caption = "CA axes")
+```
+
+Provide a couple of sentences to sum up your findings.
+
+- The dimension one has a 0.10 eigenvalue, and contribute to 34.45% of the total variance.
+- If we aim at 80% of the total variance, we should choose 4 dimensions.
+- If we focus on the first two dimensions, we will found that:
+  - Mother's occupation usually distribute negative in dimension 1,
+    and surrounded by 0 in dimension 2.
+  - Personal's occupation usually positive in dimension 1,
+    but can't find a clear rule in dimension 2.
