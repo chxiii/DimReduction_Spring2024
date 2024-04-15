@@ -1,0 +1,190 @@
+---
+title: "POP77054: Week 4 Mini-project"
+author: "Chenxi Li"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+# add additional necessary libraries in this chunk
+library(psych)
+library(GDAtools)
+
+dat <- readRDS("ISSP5_gda")
+```
+
+## Note
+
+*This document is a* **template**, *it is intended to make your job easier, but it is still* **your** *responsibility to edit this template to produce an acceptable, complete document which* **communicates** *the results of your analysis. You must* **delete** *any text which does not relate to your final output, including (for example)* **this** *note, and all other text in italics. You must complete (or modify, or delete, as appropriate) any sections (including code chunks) necessary to produce a correct and complete report, including (for example) replacing "Your name" in the `author:` header with* **your name**. 
+
+*If you are still unclear on how to use an R markdown document, there is detailed information provided on the Blackboard module page, in the content area for "Assessment Details and Assignment Upload". You should not upload a raw .RMD file: you will receive no credit for raw files, they must be properly compiled ("knitted") into a PDF document.*  
+
+# Introduction
+
+*In this section you should explain what you are investigating, and how. You are provided with an MCA model in tutorial which contains the active variables; your own choice therefore relates to the geometric investigation of this MCA: which supplementary variables, structuring features and/or ellipses will you plot and examine? You may modify and expand the below text.*
+
+How do perceptions and attitudes towards inequality vary? Using the 5th wave of the ISSP Social Inequality survey, a specific MCA was performed on a number of survey items relating to individuals' perceptions and attitudes regarding inequality. A summary of the active variables is provided in the table below.
+
+```{r active variables}
+active.variables <- c(
+  "fam.weal", # v1, wealthy family
+  "ends.meet", # v53, How difficult to make ends meet
+  "soc.cap", # v5, knowing right people
+  "pol.cap", # v6, political connections
+  "edu.par", # v2, well-educated parents
+  "edu.own", # v3, own education
+  "c.is", # v48s, Type of country is
+  "inc.fair" # v50, How fair is income distribution
+)
+```
+
+Summary statistics for the specific MCA are also provided. Following preliminary analysis, the following categories were included as passive categories: *include here the passive categories from tutorial*. The following categories were collapsed together: *include here the categories that were collapsed from tutorial*.
+
+```{r MCAspe and summary statistics}
+# include here the code from tutorial necessary to define the passive categories, 
+# and collapse together low frequency categories
+
+# and we also want to drop the NA
+dat <- na.omit(dat)
+
+# firstly, we check the distribution of the value
+lapply(dat[,active.variables], ftable) %>% # get a flat table for each var
+  lapply(., prop.table) %>% # calculate proportions
+  lapply(., round, 2) # round the proportions to 2 decimal places
+
+# and we want to collapse not very important and not important at all into
+# not important in edu.own
+dat$edu.own <- fct_collapse(dat$edu.own, `Not important` = c("Not very important", "Not important at all"))
+levels(dat$edu.own) # check the collapse results
+
+# after observing the data frame
+# so, the passive variable should be:
+passive.categories <- c("c.is.E", "inc.fair.Very fair")
+
+# include here the code necessary to perform the MCAspe
+## perform MCAspe
+mca.spe <- speMCA(dat[,active.variables], excl = passive.categories)
+# include here the code necessary to summarise the MCAspe output
+summary(mca.spe)
+```
+
+Following analysis, 3 axes were retained from the specific MCA for further investigation. Plots are provided below of the most relevant active variables for the first two factorial planes. 
+
+*Plot the most relevant active variables in the first and second factorial planes (axes 1 and 2, axes 1 and 3).* 
+
+```{r first factorial plane}
+
+ggcloud_variables(mca.spe, 
+                  axes = c(1,2), 
+                  points = "best") +
+ggtitle("First factorial plane, top contributions") # we can add additional geoms
+```
+
+```{r second factorial plane}
+ggcloud_variables(mca.spe, 
+                  axes = c(1, 3), 
+                  points = "best") +
+ggtitle("Second factorial plane, top contributions") # we can add additional geoms
+```
+
+## Interpretation of factorial planes
+
+*Briefly interpret the axes/planes based upon the summary statistics here.* 
+***In dimension 1, political capital, family education and wealth is less important, while social capital contribute a lot. So maybe it is related to some social network concept. In dimension 2, parent education and political capital contribute less while negative of parent education and wealth contribute more, which means this may related to some personal effort.***
+
+*One sentence for each axis is sufficient, but you should try to identify the underlying construct(s) which each axis may represent.*
+
+# Geometric data analysis: the cloud of individuals
+
+A geometric data analysis of the specific MCA was performed. Below is a plot of the cloud of individuals (row scores) for the first two factorial planes. 
+
+*Plot the cloud of individuals for both factorial planes.*
+
+```{r cloud of individuals first plane}
+
+ggcloud_indiv(mca.spe,
+              axes = c(1,2)) +
+  ggtitle("Cloud of individuals, first factorial plane")
+
+
+```
+
+```{r cloud of individuals second plane}
+ggcloud_indiv(mca.spe,
+              axes = c(1,3)) +
+  ggtitle("Cloud of individuals, second factorial plane")
+```
+
+## Interpretation of cloud of individuals
+
+*Comment on the distribution of the cloud of individuals, and diagnose any relevant features or effects (see class slides).*
+
+*The second factorial plane is more concentrate compared with the first one altough they have almost the same amount of outliers.*
+
+# Supplementary variable
+
+```{r supplementary variable options, eval = FALSE}
+# Note: this code chunk is solely for your information, and lists the 
+# supplementary variables available in the reduced dataset
+"ctry", # c_alphan, Country abbreviation
+"age", # AGE_c, Age (coded as factor)
+"dgr", # DEGREE, Highest completed degree (derived)
+"vote", # PARTY_LR, Party voted for last election
+"urb", # URBRURAL, Place of living: urban - rural
+"cls", # v61, Social class (self-reported)
+"occ", # v69, Own occupation
+"sex" # SEX, Sex of respondent
+```
+
+*In this section you should select a supplementary variable which you will project onto the space defined by the MCA. You may choose an ordered or unordered categorical variable, but if your variable is ordered you should include lines to connect points. Determine yourself which factorial plane is relevant to the interpretation of your supplementary variable, and plot only this plane. Do not choose a variable with too many categories: your plot must be capable of being inspected and interpreted.* 
+
+In order to examine further the correspondence between attitudes and demographic characteristics, *variable X* was included as a supplementary variable. The distribution of categories for this variable on the *Xth* factorial plane is illustrated below.
+
+```{r supplementary variable plot}
+var.cloud <- ggcloud_variables(mca.spe, 
+                               axes = c(1,2), 
+                               points = "best")
+
+ggadd_supvar(var.cloud, 
+             mca.spe, 
+             dat$occ, # we choose occ as our supplementary variable here
+             axes = c(1,2))
+```
+
+## Interpretation of supplementary variable
+
+*Interpret the distribution of the supplementary variable: how does it add to our interpretation of the plane? Are there any interesting affinities between specific active and supplementary categories? Are distances between particular categories substantive? (To determine this you will need to calculate the distance between points in terms of standard deviations).*
+
+*More information from occupation will make us more clear about the meaning of the dimensional.*
+
+# Structuring factors/ellipses
+
+*Finally, choose a supplementary variable (the same as in the previous section, or a new one) to interpret as a* **structuring factor**. *Plot relevant ellipses for this variable (choose either a concentration, indicator or confidence ellipse according to your requirements) on the most relevant plane.*
+
+*Variable Y* was projected onto the space as a structuring factor, and the distribution of the *XX* ellipses for its various categories is provided below.
+
+```{r structuring factor}
+ind.cloud <- ggcloud_indiv(mca.spe,
+                           axes = c(1,2),
+                           col = "grey") 
+
+ggadd_ellipses(ind.cloud,
+               mca.spe,
+               dat$occ,
+               axes = c(1,2),
+               sel = c(1,6), # just youngest and oldest categories selected
+               level = 0.05, # for 95 confidence level
+               legend = "none",
+               size = 1,
+               points = F # it is very difficult to see ellipses with coloured points
+               ) +
+  ggtitle("Confidence ellipse for age, 1st factorial plane")
+```
+
+## Interpretation of structuring factor
+
+*What can you say about the distribution and orientation of the ellipses? You do not need to calculate elongation or orientation, but try to interpret "by eye" any substantial features.*
+
+*Although there is some overlapping between professinal and no paid job, there is some differences between different occupation.*
